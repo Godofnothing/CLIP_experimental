@@ -22,8 +22,7 @@ class CLIP_Lite(pl.LightningModule):
     super().__init__()
     assert training_mode in self.supported_training_modes
     self.training_mode = training_mode
-    self.model = clip_model
-    #self.model = clip_model.to(dtype=torch.float32)
+    self.model = clip_model.to(dtype=torch.float32)
 
     # freeze the parameters of text_transformer to save memory
     for param in self.model.transformer.parameters():
@@ -31,8 +30,7 @@ class CLIP_Lite(pl.LightningModule):
 
     if self.training_mode == 'classic':
       assert num_classes, "Number of classes has to be specified"
-      self.classifier = nn.Linear(clip_out_features, num_classes).to(dtype=torch.float16)
-      #self.classifier = nn.Linear(clip_out_features, num_classes).to(dtype=torch.float32)
+      self.classifier = nn.Linear(clip_out_features, num_classes).to(dtype=torch.float32)
 
   def forward(self, batch):
     image_batch, text_batch = batch
@@ -52,8 +50,8 @@ class CLIP_Lite(pl.LightningModule):
       text_features = self.model.encode_text(text_batch)
 
       # normalize features
-      image_features /= (image_features.norm(dim=-1, keepdim=True) + 1e-6)
-      text_features /= (text_features.norm(dim=-1, keepdim=True) + 1e-6)
+      image_features = image_features / (image_features.norm(dim=-1, keepdim=True) + 1e-6)
+      text_features = text_features / (text_features.norm(dim=-1, keepdim=True) + 1e-6)
 
       # calculate loss
       loss = -torch.mean(image_features * text_features)
@@ -77,8 +75,8 @@ class CLIP_Lite(pl.LightningModule):
       text_features = self.model.encode_text(text_batch)
 
       # normalize features
-      image_features /= (image_features.norm(dim=-1, keepdim=True) + 1e-6)
-      text_features /= (text_features.norm(dim=-1, keepdim=True) + 1e-6)
+      image_features = image_features / (image_features.norm(dim=-1, keepdim=True) + 1e-6)
+      text_features = text_features / (text_features.norm(dim=-1, keepdim=True) + 1e-6)
 
       # calculate loss
       loss = -torch.mean(image_features * text_features)
@@ -101,12 +99,14 @@ class CLIP_Pro(pl.LightningModule):
   def __init__(
       self,
       clip_model,
-      training_mode='visual'
+      training_mode='visual',
+      init_T=0.07
   ):
     super().__init__()
     assert training_mode in self.supported_training_modes
     self.training_mode = training_mode
-    self.model = clip_model
+    self.model = clip_model.to(dtype=torch.float32)
+    self.T = nn.Parameter(torch.tensor(init_T, dtype=torch.float32),requires_grad=True)
 
     # freeze the parameters of text_transformer to save memory
     if self.training_mode == 'visual':
@@ -125,13 +125,38 @@ class CLIP_Pro(pl.LightningModule):
     text_features = self.model.encode_text(text_batch)
 
     # normalize features
-    image_features /= (image_features.norm(dim=-1, keepdim=True) + 1e-6)
-    text_features /= (text_features.norm(dim=-1, keepdim=True) + 1e-6)
+    image_features = image_features / (image_features.norm(dim=-1, keepdim=True) + 1e-6)
+    text_features = text_features / (text_features.norm(dim=-1, keepdim=True) + 1e-6)
 
-    # calculate cosine similarities
-    loss = torch.mean(image_features @ text_features.T) - 2 * torch.mean(image_features * text_features)
+    image_logits = torch.exp(self.T) * image_features @ text_features.T
+    image_labels = torch.arange(len(image_batch), device=image_batch.device)
+
+    loss_i = F.cross_entropy(image_logits, image_labels)
+    loss_t = F.cross_entropy(image_logits.T, image_labels)
+
+    loss = (loss_i + loss_t) / 2
+    self.log('train/loss', loss, on_step=True, on_epoch=True)
 
     return loss
+
+  def validation_step(self, batch, batch_idx):
+    image_batch, text_batch = batch
+
+    image_features = self.model.visual(image_batch)
+    text_features = self.model.encode_text(text_batch)
+
+    # normalize features
+    image_features = image_features / (image_features.norm(dim=-1, keepdim=True) + 1e-6)
+    text_features = text_features / (text_features.norm(dim=-1, keepdim=True) + 1e-6)
+
+    image_logits = torch.exp(self.T) * image_features @ text_features.T
+    image_labels = torch.arange(len(image_batch), device=image_batch.device)
+
+    loss_i = F.cross_entropy(image_logits, image_labels)
+    loss_t = F.cross_entropy(image_logits.T, image_labels)
+
+    loss = (loss_i + loss_t) / 2
+    self.log('val/loss', loss, on_step=True, on_epoch=True)
 
   def configure_optimizers(self):
     optimizer = torch.optim.Adam(self.parameters(), lr=1e-5)

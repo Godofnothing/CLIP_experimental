@@ -8,7 +8,7 @@ class TextTransformer:
     self.tokenizer = tokenizer
     self.context_length = context_length      
 
-  def transform(self, class_label):
+  def __call__(self, class_label):
     text_input = f"This is a photo of {class_label}"
     tokens = self.tokenizer.encode(text_input)
 
