@@ -192,3 +192,17 @@ class CLIP_Pro(pl.LightningModule):
     optimizer = torch.optim.Adam(self.parameters(), lr=1e-5)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer)
     return {"optimizer" : optimizer, "scheduler" : scheduler, "monitor" : "val_loss"}
+
+  def classify(self, image_batch, text_batch):
+    image_features = self.model.visual(image_batch)
+    text_features = self.model.encode_text(text_batch)
+
+    # normalize features
+    image_features = image_features / (image_features.norm(dim=-1, keepdim=True) + 1e-6)
+    text_features = text_features / (text_features.norm(dim=-1, keepdim=True) + 1e-6)
+
+    image_logits = torch.exp(self.T) * image_features @ text_features.T
+
+    labels = image_logits.argmax(axis=1)
+
+    return labels
