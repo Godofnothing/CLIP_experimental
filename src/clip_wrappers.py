@@ -98,13 +98,23 @@ class CLIP_Lite(pl.LightningModule):
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer)
     return {"optimizer" : optimizer, "scheduler" : scheduler, "monitor" : "val_loss"}
 
-  def classify(self, image_batch):
+  def classify(self, image_batch, text_batch=None):
+    image_features = self.model.visual(image_batch)
+
     if self.training_mode == 'classic':
-      image_features = self.model.visual(image_batch)
       image_logits = self.classifier(image_features)
       pred_labels = image_logits.argmax(dim=-1)
     else:
-      raise NotImplementedError("Not implemented for cosine-similarity so far")
+      if text_batch is None:
+          raise AssertionError("Cosine similarity works only with text prompt batch")
+
+      text_features = self.model.encode_text(text_batch)
+      image_features = image_features / (image_features.norm(dim=-1, keepdim=True) + 1e-6)
+      text_features = text_features / (text_features.norm(dim=-1, keepdim=True) + 1e-6)
+
+      logits = image_features @ text_features.T
+      pred_labels = logits.argmax(axis=1)
+
     return pred_labels
 
 
