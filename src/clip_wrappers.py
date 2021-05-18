@@ -35,6 +35,8 @@ class CLIP_Lite(pl.LightningModule):
   def forward(self, batch):
     image_batch, text_batch = batch
 
+    return self.model.visual(image_batch)
+
   def training_step(self, batch, batch_idx):
     image_batch, text_batch = batch
     
@@ -43,8 +45,12 @@ class CLIP_Lite(pl.LightningModule):
     if self.training_mode == 'classic':
       image_logits = self.classifier(image_features)
       image_labels = text_batch
+      pred_labels = image_logits.argmax(dim=-1)
 
       loss = F.cross_entropy(image_logits, image_labels)
+      accuracy = sum(pred_labels == image_labels) / len(image_labels)
+
+      self.log('val/accuracy', accuracy, on_step=True)  
 
     elif self.training_mode ==  'cosine_similarity':
       text_features = self.model.encode_text(text_batch)
@@ -56,7 +62,7 @@ class CLIP_Lite(pl.LightningModule):
       # calculate loss
       loss = -torch.mean(image_features * text_features)
 
-    self.log('train/loss', loss, on_step=True, on_epoch=True)
+    self.log('train/loss', loss, on_step=True)
 
     return loss
 
@@ -68,8 +74,12 @@ class CLIP_Lite(pl.LightningModule):
     if self.training_mode == 'classic':
       image_logits = self.classifier(image_features)
       image_labels = text_batch
-
+      pred_labels = image_logits.argmax(dim=-1)
+      
       loss = F.cross_entropy(image_logits, image_labels)
+      accuracy = sum(pred_labels == image_labels) / len(image_labels)
+
+      self.log('val/accuracy', accuracy, on_step=True)      
 
     elif self.training_mode ==  'cosine_similarity':
       text_features = self.model.encode_text(text_batch)
@@ -81,12 +91,22 @@ class CLIP_Lite(pl.LightningModule):
       # calculate loss
       loss = -torch.mean(image_features * text_features)
 
-    self.log('val/loss', loss, on_step=True, on_epoch=True)
+    self.log('val/loss', loss, on_step=True)
 
   def configure_optimizers(self):
     optimizer = torch.optim.Adam(self.parameters(), lr=1e-4)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer)
     return {"optimizer" : optimizer, "scheduler" : scheduler, "monitor" : "val_loss"}
+
+  def classify(self, image_batch):
+    if self.training_mode == 'classic':
+      image_features = self.model.visual(image_batch)
+      image_logits = self.classifier(image_features)
+      pred_labels = image_logits.argmax(dim=-1)
+    else:
+      raise NotImplementedError("Not implemented for cosine-similarity so far")
+    return pred_labels
+
 
 class CLIP_Pro(pl.LightningModule):
   '''

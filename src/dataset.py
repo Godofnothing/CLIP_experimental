@@ -22,6 +22,7 @@ class CLIPDataset(Dataset):
     self.return_indices = return_indices
     
     self.class_to_idx = {}
+    self.idx_to_class = {}
     self.paths_to_images = self._make_dataset()
 
   def _make_dataset(self):
@@ -31,6 +32,7 @@ class CLIPDataset(Dataset):
     if self.return_indices:
       for idx, class_name in enumerate(os.scandir(self.img_dir)):
         self.class_to_idx[class_name.name] = idx
+    self.idx_to_class = {idx : class_name for class_name, idx in self.class_to_idx.items()}
 
     paths_to_images = []
     for class_name in os.listdir(self.img_dir):
