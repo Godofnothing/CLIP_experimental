@@ -17,12 +17,19 @@ class CLIP_Lite(pl.LightningModule):
       clip_model,
       training_mode='classic',
       clip_out_features=1024,
+      freeze_visual=False,
       num_classes=None,
   ):
     super().__init__()
+    
     assert training_mode in self.supported_training_modes
     self.training_mode = training_mode
     self.model = clip_model.to(dtype=torch.float32)
+
+    # freeze the image encoder, if needed
+    if freeze_visual:
+      for param in self.model.visual.parameters():
+        param.requires_grad = False    
 
     # freeze the parameters of text_transformer to save memory
     for param in self.model.transformer.parameters():
@@ -50,7 +57,7 @@ class CLIP_Lite(pl.LightningModule):
       loss = F.cross_entropy(image_logits, image_labels)
       accuracy = sum(pred_labels == image_labels) / len(image_labels)
 
-      self.log('val/accuracy', accuracy, on_step=True)  
+      self.log('train/accuracy', accuracy, on_step=True)  
 
     elif self.training_mode ==  'cosine_similarity':
       text_features = self.model.encode_text(text_batch)
