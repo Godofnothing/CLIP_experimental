@@ -20,7 +20,7 @@ class ClassificationVisualizer:
       dataset,
       images_in_row=1
   ):
-    self.clip_wrapper = clip_wrapper
+    self.clip_wrapper = clip_wrapper.cuda()
     self.dataset = dataset
     self.images_in_row = images_in_row
 
@@ -50,3 +50,4 @@ class ClassificationVisualizer:
         ax[idx // ncols, idx % ncols].axis('off')
 
     plt.tight_layout()
+    
