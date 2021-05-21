@@ -47,6 +47,6 @@ class GANUpsample:
         normalize = make_grid(logits, padding=0, normalize=True)
         batch = torch.split(normalize, split_size_or_sections=self.hr_size, dim=-1)
 
-        return batch
+        return torch.stack(batch)
 
 
