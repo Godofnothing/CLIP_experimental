@@ -1,7 +1,7 @@
 from PIL import Image
 import torch
 import torchvision.transforms as transforms
-from models import GeneratorResNet
+from .models import GeneratorResNet
 from torchvision.utils import make_grid
 import numpy as np
 
@@ -42,11 +42,8 @@ class GANUpsample:
 
     def __call__(self, sample):
         sample = self.lr_transform(sample)
-        sample = sample[None]
-        logits = self.gen(sample)
-        normalize = make_grid(logits, padding=0, normalize=True)
-        batch = torch.split(normalize, split_size_or_sections=self.hr_size, dim=-1)
+        sample = self.gen(sample[None, ...])
 
-        return torch.stack(batch)
+        return sample.squeeze(0)
 
 
