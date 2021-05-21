@@ -1,22 +1,35 @@
+from typing import List
+
 import torch
 
-from .tokenizer import SimpleTokenizer
 
 class TextTransformer:
 
-  def __init__(self, tokenizer, context_length):
-    self.tokenizer = tokenizer
-    self.context_length = context_length      
+    def __init__(self, tokenizer, templates, context_length):
+        """Adds prefix from templates and tokenizes the text
 
-  def __call__(self, class_label):
-    text_input = f"This is a photo of {class_label}"
-    tokens = self.tokenizer.encode(text_input)
+        Args:
+            tokenizer: encodes string to array of numbers with .encode() method
+            templates (List[str]): Prompts with {} placeholders
+            context_length (int): maximum text length to which text is padded with zeros
+        """
+        self.tokenizer = tokenizer
+        self.context_length = context_length
+        self.templates = templates
 
-    text_item = torch.zeros(self.context_length, dtype=torch.long)
-    sot_token = self.tokenizer.encoder['<|startoftext|>']
-    eot_token = self.tokenizer.encoder['<|endoftext|>']
+        self.sot_token = self.tokenizer.encoder['<|startoftext|>']
+        self.eot_token = self.tokenizer.encoder['<|endoftext|>']
 
-    tokens = [sot_token] + tokens + [eot_token]
-    text_item[:len(tokens)] = torch.tensor(tokens)
+    def _pad_sentence(self, sent: List[int]) -> List[int]:
+        if len(sent) > self.context_length:
+            raise ValueError(f'Sentence {sent} is longer then context_length')
+        else:
+            return [self.sot_token] + \
+                sent + [0] * (self.context_length - len(sent)) + \
+                [self.eot_token]
 
-    return text_item
+    def __call__(self, class_label: str):
+        texts = [template.format(class_label) for template in self.templates]
+        tokens = [self.tokenizer.encode(text) for text in texts]
+        padded = [self._pad_sentence(sent) for sent in tokens]
+        return torch.tensor(padded, dtype=torch.long)
