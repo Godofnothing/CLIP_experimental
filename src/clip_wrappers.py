@@ -23,17 +23,16 @@ class CLIP_Lite(pl.LightningModule):
       init_learning_rate=1e-4
   ):
     super().__init__()
-    
+
     assert training_mode in self.supported_training_modes
     self.training_mode = training_mode
     self.model = clip_model.to(dtype=torch.float32)
-    self.metric = torchmetrics.Accuracy()
     self.learning_rate = init_learning_rate
 
     # freeze the image encoder, if needed
     if freeze_visual:
       for param in self.model.visual.parameters():
-        param.requires_grad = False    
+        param.requires_grad = False
 
     # freeze the parameters of text_transformer to save memory
     for param in self.model.transformer.parameters():
@@ -50,7 +49,7 @@ class CLIP_Lite(pl.LightningModule):
 
   def training_step(self, batch, batch_idx):
     image_batch, text_batch = batch
-    
+
     image_features = self.model.visual(image_batch)
 
     if self.training_mode == 'classic':
@@ -59,9 +58,6 @@ class CLIP_Lite(pl.LightningModule):
       pred_labels = image_logits.argmax(dim=-1)
 
       loss = F.cross_entropy(image_logits, image_labels)
-      accuracy = self.metric(image_labels, pred_labels)
-
-      self.log('train/accuracy', accuracy, on_step=True)  
 
     elif self.training_mode ==  'cosine_similarity':
       text_features = self.model.encode_text(text_batch)
@@ -69,28 +65,33 @@ class CLIP_Lite(pl.LightningModule):
       # normalize features
       image_features = image_features / (image_features.norm(dim=-1, keepdim=True) + 1e-6)
       text_features = text_features / (text_features.norm(dim=-1, keepdim=True) + 1e-6)
+
+      pred_labels = None
 
       # calculate loss
       loss = -torch.mean(image_features * text_features)
 
     self.log('train/loss', loss, on_step=True)
+    return {'preds': pred_labels, 'labels': labels}
 
-    return loss
+  def training_epoch_end(self, outputs):
+    preds  = torch.Tensor([o['preds'] for o in outputs])
+    labels = torch.Tensor([o['labels'] for o in outputs])
+    acc = torchmetrics.functional.accuracy(preds, labels)
+
+    self.logger.experiment.add_scalar('train/accuracy', acc, self.current_epoch)
 
   def validation_step(self, batch, batch_idx):
     image_batch, text_batch = batch
-    
+
     image_features = self.model.visual(image_batch)
 
     if self.training_mode == 'classic':
       image_logits = self.classifier(image_features)
       image_labels = text_batch
       pred_labels = image_logits.argmax(dim=-1)
-      
-      loss = F.cross_entropy(image_logits, image_labels)
-      accuracy = self.metric(image_labels, pred_labels)
 
-      self.log('val/accuracy', accuracy, on_step=True)      
+      loss = F.cross_entropy(image_logits, image_labels)
 
     elif self.training_mode ==  'cosine_similarity':
       text_features = self.model.encode_text(text_batch)
@@ -99,15 +100,26 @@ class CLIP_Lite(pl.LightningModule):
       image_features = image_features / (image_features.norm(dim=-1, keepdim=True) + 1e-6)
       text_features = text_features / (text_features.norm(dim=-1, keepdim=True) + 1e-6)
 
+      pred_labels = None
+
       # calculate loss
       loss = -torch.mean(image_features * text_features)
 
     self.log('val/loss', loss, on_step=True)
+    return {'preds': pred_labels, 'labels': labels}
+
+  def validation_epoch_end(self, outputs):
+    preds  = torch.Tensor([o['preds'] for o in outputs])
+    labels = torch.Tensor([o['labels'] for o in outputs])
+    acc = torchmetrics.functional.accuracy(preds, labels)
+
+    self.log('val/accuracy', acc)
+    self.logger.experiment.add_scalar('val/accuracy', acc, self.current_epoch)
 
   def configure_optimizers(self):
     optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max')
-    return {"optimizer" : optimizer, "scheduler" : scheduler, "monitor" : "val_loss"}
+    return {"optimizer" : optimizer, "scheduler" : scheduler, "monitor" : "val/accuracy"}
 
   def classify(self, image_batch, text_batch=None):
     image_features = self.model.visual(image_batch)
@@ -149,7 +161,6 @@ class CLIP_Pro(pl.LightningModule):
     self.training_mode = training_mode
     self.model = clip_model.to(dtype=torch.float32)
     self.T = nn.Parameter(torch.tensor(init_T, dtype=torch.float32),requires_grad=True)
-    self.metric = torchmetrics.Accuracy()
     self.learning_rate = init_learning_rate
 
     # freeze the parameters of text_transformer to save memory
@@ -205,7 +216,7 @@ class CLIP_Pro(pl.LightningModule):
   def configure_optimizers(self):
     optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max')
-    return {"optimizer" : optimizer, "scheduler" : scheduler, "monitor" : "val_loss"}
+    return {"optimizer" : optimizer, "scheduler" : scheduler, "monitor" : "val/loss"}
 
   def classify(self, image_batch, text_batch):
     image_features = self.model.visual(image_batch)
@@ -220,4 +231,3 @@ class CLIP_Pro(pl.LightningModule):
     labels = image_logits.argmax(axis=1)
 
     return labels
-
