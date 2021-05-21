@@ -2,6 +2,7 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 import pytorch_lightning as pl
+import torchmetrics
 
 class CLIP_Lite(pl.LightningModule):
   '''
@@ -19,12 +20,15 @@ class CLIP_Lite(pl.LightningModule):
       clip_out_features=1024,
       freeze_visual=False,
       num_classes=None,
+      init_learning_rate=1e-4
   ):
     super().__init__()
     
     assert training_mode in self.supported_training_modes
     self.training_mode = training_mode
     self.model = clip_model.to(dtype=torch.float32)
+    self.metric = torchmetrics.Accuracy()
+    self.learning_rate = init_learning_rate
 
     # freeze the image encoder, if needed
     if freeze_visual:
@@ -55,7 +59,7 @@ class CLIP_Lite(pl.LightningModule):
       pred_labels = image_logits.argmax(dim=-1)
 
       loss = F.cross_entropy(image_logits, image_labels)
-      accuracy = sum(pred_labels == image_labels) / len(image_labels)
+      accuracy = self.metric(image_labels, pred_labels)
 
       self.log('train/accuracy', accuracy, on_step=True)  
 
@@ -84,7 +88,7 @@ class CLIP_Lite(pl.LightningModule):
       pred_labels = image_logits.argmax(dim=-1)
       
       loss = F.cross_entropy(image_logits, image_labels)
-      accuracy = sum(pred_labels == image_labels) / len(image_labels)
+      accuracy = self.metric(image_labels, pred_labels)
 
       self.log('val/accuracy', accuracy, on_step=True)      
 
@@ -101,8 +105,8 @@ class CLIP_Lite(pl.LightningModule):
     self.log('val/loss', loss, on_step=True)
 
   def configure_optimizers(self):
-    optimizer = torch.optim.Adam(self.parameters(), lr=1e-4)
-    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer)
+    optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate)
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max')
     return {"optimizer" : optimizer, "scheduler" : scheduler, "monitor" : "val_loss"}
 
   def classify(self, image_batch, text_batch=None):
@@ -137,13 +141,16 @@ class CLIP_Pro(pl.LightningModule):
       self,
       clip_model,
       training_mode='visual',
-      init_T=0.07
+      init_T=0.07,
+      init_learning_rate=1e-4
   ):
     super().__init__()
     assert training_mode in self.supported_training_modes
     self.training_mode = training_mode
     self.model = clip_model.to(dtype=torch.float32)
     self.T = nn.Parameter(torch.tensor(init_T, dtype=torch.float32),requires_grad=True)
+    self.metric = torchmetrics.Accuracy()
+    self.learning_rate = init_learning_rate
 
     # freeze the parameters of text_transformer to save memory
     if self.training_mode == 'visual':
@@ -196,8 +203,8 @@ class CLIP_Pro(pl.LightningModule):
     self.log('val/loss', loss, on_step=True, on_epoch=True)
 
   def configure_optimizers(self):
-    optimizer = torch.optim.Adam(self.parameters(), lr=1e-5)
-    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer)
+    optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate)
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max')
     return {"optimizer" : optimizer, "scheduler" : scheduler, "monitor" : "val_loss"}
 
   def classify(self, image_batch, text_batch):
@@ -213,3 +220,4 @@ class CLIP_Pro(pl.LightningModule):
     labels = image_logits.argmax(axis=1)
 
     return labels
+
