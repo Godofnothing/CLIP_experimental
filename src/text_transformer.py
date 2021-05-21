@@ -21,11 +21,11 @@ class TextTransformer:
         self.eot_token = self.tokenizer.encoder['<|endoftext|>']
 
     def _pad_sentence(self, sent: List[int]) -> List[int]:
-        if len(sent) > self.context_length:
-            raise ValueError(f'Sentence {sent} is longer then context_length')
+        if len(sent) > self.context_length - 2:
+            raise ValueError(f'Sentence {sent} is too long')
         else:
             return [self.sot_token] + \
-                sent + [0] * (self.context_length - len(sent)) + \
+                sent + [0] * (self.context_length - 2 - len(sent)) + \
                 [self.eot_token]
 
     def __call__(self, class_label: str):
