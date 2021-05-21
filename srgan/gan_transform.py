@@ -42,7 +42,7 @@ class GANUpsample:
 
     def __call__(self, sample):
         sample = self.lr_transform(sample)
-        # sample = sample[None]
+        sample = sample[None]
         logits = self.gen(sample)
         normalize = make_grid(logits, padding=0, normalize=True)
         batch = torch.split(normalize, split_size_or_sections=self.hr_size, dim=-1)
