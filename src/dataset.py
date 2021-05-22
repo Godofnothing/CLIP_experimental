@@ -1,7 +1,10 @@
 
 import os
 from PIL import Image
+import numpy as np
 from torch.utils.data import Dataset
+from copy import deepcopy
+from sklearn.model_selection import train_test_split
 
 class CLIPDataset(Dataset):
   
@@ -64,3 +67,12 @@ class CLIPDataset(Dataset):
       prompt = self.class_to_idx[prompt]
   
     return image, prompt
+
+def train_val_split(dataset, val_size=0.1, random_state=42):
+  train_idx, val_idx = train_test_split(np.arange(len(dataset)), test_size=0.1, random_state=42)
+  train_dataset, val_dataset = deepcopy(dataset), deepcopy(dataset)
+
+  train_dataset.paths_to_images = [dataset.paths_to_images[idx] for idx in train_idx]
+  val_dataset.paths_to_images = [dataset.paths_to_images[idx] for idx in val_idx]
+
+  return train_dataset, val_dataset
