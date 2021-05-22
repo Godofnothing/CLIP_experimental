@@ -48,19 +48,15 @@ class CLIP_Lite(pl.LightningModule):
     image_features = self.model.visual(image_batch)
     
     image_logits = self.classifier(image_features)
-    pred_labels = image_logits.argmax(dim=-1)
 
     loss = F.cross_entropy(image_logits, true_labels)
+    self.log('train/loss', loss)
 
-    self.log('train/loss', loss, on_step=True)
-    return {'loss' : loss, 'preds': pred_labels, 'labels': true_labels}
+    pred_labels = image_logits.argmax(dim=-1)
+    acc = torchmetrics.functional.accuracy(pred_labels, true_labels)
+    self.log('train/accuracy', acc, on_step=True, on_epoch=True)
 
-  def training_epoch_end(self, outputs):
-    preds  = torch.cat([o['preds'] for o in outputs])
-    labels = torch.cat([o['labels'] for o in outputs])
-    acc = torchmetrics.functional.accuracy(preds, labels)
-
-    self.logger.experiment.add_scalar('train/accuracy', acc, self.current_epoch)
+    return loss
 
   def validation_step(self, batch, batch_idx):
     image_batch, true_labels = batch
@@ -68,20 +64,13 @@ class CLIP_Lite(pl.LightningModule):
     image_features = self.model.visual(image_batch)
     
     image_logits = self.classifier(image_features)
-    pred_labels = image_logits.argmax(dim=-1)
 
     loss = F.cross_entropy(image_logits, true_labels)
+    self.log('val/loss', loss)
 
-    self.log('val/loss', loss, on_step=True)
-    return {'loss' : loss, 'preds': pred_labels, 'labels': true_labels}
-
-  def validation_epoch_end(self, outputs):
-    preds  = torch.cat([o['preds'] for o in outputs])
-    labels = torch.cat([o['labels'] for o in outputs])
-    acc = torchmetrics.functional.accuracy(preds, labels)
-
+    pred_labels = image_logits.argmax(dim=-1)
+    acc = torchmetrics.functional.accuracy(pred_labels, true_labels)
     self.log('val/accuracy', acc)
-    self.logger.experiment.add_scalar('val/accuracy', acc, self.current_epoch)
 
   def configure_optimizers(self):
     optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate)
@@ -153,12 +142,12 @@ class CLIP_Pro(pl.LightningModule):
     class_features = torch.sum(self.caption_embeddings * self.caption_weights, axis=1)
 
     image_logits = torch.exp(self.T) * image_features @ class_features.T
-    pred_labels = image_logits.argmax(dim=-1)
-
     loss = F.cross_entropy(image_logits, true_labels)
+    self.log('train/loss', loss)
 
-    self.log('train/loss', loss, on_step=True)
-    return {'loss' : loss, 'preds': pred_labels, 'labels': true_labels}
+    pred_labels = image_logits.argmax(dim=-1)
+    acc = torchmetrics.functional.accuracy(pred_labels, true_labels)
+    self.log('train/accuracy', acc, on_step=True, on_epoch=True)
 
   def validation_step(self, batch, batch_idx):
     image_batch, true_labels = batch
@@ -170,12 +159,12 @@ class CLIP_Pro(pl.LightningModule):
     class_features = torch.sum(self.caption_embeddings * self.caption_weights, axis=1)
 
     image_logits = torch.exp(self.T) * image_features @ class_features.T
-    pred_labels = image_logits.argmax(dim=-1)
-
     loss = F.cross_entropy(image_logits, true_labels)
+    self.log('val/loss', loss)
 
-    self.log('val/loss', loss, on_step=True)
-    return {'loss' : loss, 'preds': pred_labels, 'labels': true_labels}
+    pred_labels = image_logits.argmax(dim=-1)
+    acc = torchmetrics.functional.accuracy(pred_labels, true_labels)
+    self.log('val/accuracy', acc)
 
   def configure_optimizers(self):
     optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate)
