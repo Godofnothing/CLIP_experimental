@@ -69,7 +69,7 @@ class CLIPDataset(Dataset):
     return image, prompt
 
 def train_val_split(dataset, val_size=0.1, random_state=42):
-  train_idx, val_idx = train_test_split(np.arange(len(dataset)), test_size=0.1, random_state=42)
+  train_idx, val_idx = train_test_split(np.arange(len(dataset)), test_size=val_size, random_state=random_state )
   train_dataset, val_dataset = deepcopy(dataset), deepcopy(dataset)
 
   train_dataset.paths_to_images = [dataset.paths_to_images[idx] for idx in train_idx]

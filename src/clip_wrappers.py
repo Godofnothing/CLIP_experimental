@@ -62,7 +62,7 @@ class CLIP_Lite(pl.LightningModule):
     image_batch, true_labels = batch
 
     image_features = self.model.visual(image_batch)
-    
+
     image_logits = self.classifier(image_features)
 
     loss = F.cross_entropy(image_logits, true_labels)
@@ -71,6 +71,22 @@ class CLIP_Lite(pl.LightningModule):
     pred_labels = image_logits.argmax(dim=-1)
     acc = torchmetrics.functional.accuracy(pred_labels, true_labels)
     self.log('val/accuracy', acc)
+
+  def test_step(self, batch, batch_idx):
+    image_batch, true_labels = batch
+
+    image_features = self.model.visual(image_batch)
+
+    image_logits = self.classifier(image_features)
+    pred_labels = image_logits.argmax(dim=-1)
+    return {'preds': pred_labels, 'labels': true_labels}
+
+  def test_epoch_end(self, outputs):
+    preds = torch.cat([o['preds'] for o in outputs])
+    labels = torch.cat([o['labels'] for o in outputs])
+    acc = torchmetrics.functional.accuracy(preds, labels)
+
+    self.log('test/accuracy', acc)
 
   def configure_optimizers(self):
     optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate)
@@ -165,6 +181,26 @@ class CLIP_Pro(pl.LightningModule):
     pred_labels = image_logits.argmax(dim=-1)
     acc = torchmetrics.functional.accuracy(pred_labels, true_labels)
     self.log('val/accuracy', acc)
+
+  def test_step(self, batch, batch_idx):
+    image_batch, true_labels = batch
+
+    image_features = self.model.visual(image_batch)
+
+    # normalize features
+    image_features = image_features / (image_features.norm(dim=-1, keepdim=True) + 1e-6)
+    class_features = torch.sum(self.caption_embeddings * self.caption_weights, axis=1)
+
+    image_logits = torch.exp(self.T) * image_features @ class_features.T
+    pred_labels = image_logits.argmax(dim=-1)
+    return {'preds': pred_labels, 'labels': true_labels}
+
+  def test_epoch_end(self, outputs):
+    preds = torch.cat([o['preds'] for o in outputs])
+    labels = torch.cat([o['labels'] for o in outputs])
+    acc = torchmetrics.functional.accuracy(preds, labels)
+
+    self.log('test/accuracy', acc)
 
   def configure_optimizers(self):
     optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate)
