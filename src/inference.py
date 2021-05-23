@@ -44,10 +44,10 @@ class ClassificationVisualizer:
     for idx, (image, true_label, pred_label) in enumerate(zip(images_to_show, labels, pred_labels)):
         ax[idx // ncols, idx % ncols].imshow(image)
         ax[idx // ncols, idx % ncols].set_title(
-            f"true : {self.dataset.idx_to_class[true_label]} \n pred : {self.dataset.idx_to_class[pred_label.item()]}", 
-            fontsize=20
+            f"{self.dataset.idx_to_class[pred_label.item()]} ({self.dataset.idx_to_class[true_label]})", 
+            fontsize=20,
+            color=("green" if true_label == pred_label else "red")
         )
         ax[idx // ncols, idx % ncols].axis('off')
 
     plt.tight_layout()
-    

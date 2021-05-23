@@ -165,6 +165,8 @@ class CLIP_Pro(pl.LightningModule):
     acc = torchmetrics.functional.accuracy(pred_labels, true_labels)
     self.log('train/accuracy', acc, on_step=True, on_epoch=True)
 
+    return loss
+
   def validation_step(self, batch, batch_idx):
     image_batch, true_labels = batch
 
