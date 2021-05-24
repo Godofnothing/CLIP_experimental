@@ -1,8 +1,7 @@
 from PIL import Image
 import torch
 import torchvision.transforms as transforms
-from .models import GeneratorResNet
-from torchvision.utils import make_grid
+from models import GeneratorResNet
 import numpy as np
 
 class GANUpsample:
@@ -35,6 +34,14 @@ class GANUpsample:
 
         return lr_transform
 
+    def norm_ip(self, img, low, high):
+        img.clamp_(min=low, max=high)
+        img.sub_(low).div_(max(high - low, 1e-5))
+        return img
+
+    def norm_range(self, t):
+        return self.norm_ip(t, float(t.min()), float(t.max()))
+
     def _define_generator(self, path_to_model):
         gen = GeneratorResNet()
         gen.load_state_dict(torch.load(path_to_model))
@@ -42,8 +49,9 @@ class GANUpsample:
 
     def __call__(self, sample):
         sample = self.lr_transform(sample)
-        sample = self.gen(sample[None, ...])
+        logits = self.gen(sample[None])
+        logits = self.norm_range(logits).squeeze(0)
 
-        return sample.squeeze(0)
+        return logits
 
 
