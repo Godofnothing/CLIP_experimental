@@ -39,11 +39,11 @@ class FruitsDatasetBilinear(Dataset):
         image = Image.open(self.images[index])
         image = self.to_tensor(np.asarray(image))
 
-        batch = f.interpolate(image[None], size=self.new_shape, mode='bilinear', align_corners=True).squeeze(0)
+        image = f.interpolate(image[None], size=self.new_shape, mode='bilinear', align_corners=True).squeeze(0)
         name = self.images[index].split('/')[-1]
         save_path = f'{self.new_directory}/{name}'
 
-        return batch, save_path
+        return image, save_path
 
 
 class FruitsDatasetGAN(Dataset):
