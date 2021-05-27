@@ -3,6 +3,7 @@ This repository contains experiments and results of comparison of image features
 
 ### **Zero-shot preditions**
 The procedure described in the CLIP [paper](https://arxiv.org/abs/2103.00020) allows to make predictions on a new image dataset with any set of labels without training.
+Caption format: **Predicted (True)**
 <p align="center"><img src="pics/zero-shot-visualization.jpg" width="700" /></p>
 
 
