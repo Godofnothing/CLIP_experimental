@@ -32,6 +32,10 @@ class CLIP_Lite(pl.LightningModule):
     for param in self.model.transformer.parameters():
       param.requires_grad = False
 
+    # freeze params of the token embeddings
+    for param in self.model.token_embedding.parameters():
+      param.requires_grad = False
+
     assert num_classes, "Number of classes has to be specified"
     self.classifier = nn.Linear(clip_out_features, num_classes).to(dtype=torch.float32)
 
@@ -131,6 +135,10 @@ class CLIP_Pro(pl.LightningModule):
     for param in self.model.transformer.parameters():
       param.requires_grad = False
 
+    # freeze params of the token embeddings
+    for param in self.model.token_embedding.parameters():
+      param.requires_grad = False
+
     # initialize tensor with all captions
     self.caption_embeddings = torch.zeros(
       (num_classes, captions_per_class, clip_out_features), 
@@ -216,4 +224,3 @@ class CLIP_Pro(pl.LightningModule):
     image_logits = torch.exp(self.T) * image_features @ class_features.T
 
     return image_logits.argmax(dim=-1)
-
