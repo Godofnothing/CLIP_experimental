@@ -8,17 +8,15 @@ Caption format: **Predicted (True)**
 
 
 ## Experiments accomplished
-We compared features extractors with different architectures and training procedures:
-1. Zero-shot of CLIP with ViT/ResNet
-2. K-shot of CLIP with ViT/ResNet
-3. Linear probing of CLIP with ViT/ResNet
-4. Linear probing of ViT/ResNet trained on ImageNet
-5. Fine-tuning of CLIP with ViT/ResNet
-6. Fine-tuning of ViT/ResNet trained in ImageNet
+We compared features extractors with different architectures, training procedures and image upsampling techniques. If an image upsampling technique is not mentioned, then bicubic interpolation is used. We performed the following two main sections of experiments:
+1. Linear probing and fine-tuning of CLIP with ResNet and ViT backbones and ImageNet-pretrained ResNet and EfficientNet
+2. Zero-shot and K-shot classification of CLIP with ViT and ResNet backbones
 
 We also compared 2 image upsampling options:
  - Bucubic interpolations
  - SRGAN upsampling [[weights](https://drive.google.com/drive/folders/1-_0wNvmjFnISr_lN520DfqyqN3uydgFC?usp=sharing)]
+
+We did it on the following training setups: linear probing and contrastive fine-tuning of CLIP with ResNet and ViT backbones.
 
 Main plots can be found in the [results](#results) section. Full experiments descriptions can be found in the ```supplementary/report.pdf```
 
