@@ -20,11 +20,19 @@ We also compared 2 image upsampling options:
  - Bucubic interpolations
  - SRGAN upsampling [[weights](https://drive.google.com/drive/folders/1-_0wNvmjFnISr_lN520DfqyqN3uydgFC?usp=sharing)]
 
-Main plots can be found in the [results](#results) section. Full experiments descriptions can be found in the ```report.pdf```
+Main plots can be found in the [results](#results) section. Full experiments descriptions can be found in the ```supplementary/report.pdf```
 
 ## Repository structure
 
-qweasdgozxcclown
+- ```data_prepare/``` — Dataset upsampling procedures TODO
+- ```notebooks/``` — contains experiments in form of jupyter notebooks \
+    ```├── few_shot_learning.ipynb``` — k-shot learning procedure\
+    ```├── prompts_validation.ipynb``` — finding the best prompt for given dataset\
+    ```└── train_CLIP.ipynb``` — training CLIP in different settings
+- ```scr/``` — training related auxilary source code
+- ```pics/``` — pictures for the [results](#results) part
+- ```supplementary/``` — contains report and presentation in ```.pdf``` format
+
 
 
 ## Results
