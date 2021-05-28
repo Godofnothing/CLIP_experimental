@@ -44,11 +44,11 @@ Pretained CLIP model with new fully-connected layer which is trained only on *k*
 
 ### Linear probing
 Pretained model with new fully-connected layer on top which is trained on a training part of the target dataset.
-<p align="center"><img src="pics/linear-probing-clip.jpg" width="450" /></p>
-<p align="center"><img src="pics/linear-probing-imagenet.jpg" width="450" /></p>
+<img src="pics/CLIP_lin_train.png" width="425"/> <img src="pics/CLIP_lin_val.png" width="425"/> 
+
 
 ### Fine-tuning
-Fune-tuning of models pretrained on ImageNet and CLIP with respective training procedures on the target dataset
+Fune-tuning of visual parts of CLIP models with linear classifier on top with frozen/trainable backbones
 <p align="center"><img src="pics/fine-tuning-plot.jpg" width="450" /></p>
 
 ### Upsampling
