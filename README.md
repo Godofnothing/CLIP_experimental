@@ -39,16 +39,17 @@ Main plots can be found in the [results](#results) section. Full experiments des
 ## Results
 
 ### K-shot training
-Pretained CLIP model with new fully-connected layer which is trained only on *k* examples of each class.
-<p align="center"><img src="pics/k-shot-plot.jpg" width="450" /></p>
-
-### Linear probing
-Pretained model with new fully-connected layer on top which is trained on a training part of the target dataset.
-<p align="center"><img src="pics/CLIP_lin_train.png" width="400"/> <img src="pics/CLIP_lin_val.png" width="400"/></p> 
-
+Pretained CLIP model with **ResNet-101** backbone + new fully-connected layer which is trained only on *k* examples of each class.
+<p align="center"><img src="pics/few-shot.png" width="450" /></p>
 
 ### Fine-tuning
 Fune-tuning of visual parts of CLIP models with linear classifier on top with frozen/trainable backbones
+
+<p align="center"><img src="pics/CLIP_lin_train.png" width="400"/> <img src="pics/CLIP_lin_val.png" width="400"/></p> 
+
+
+### Linear probing
+Pretained model with new fully-connected layer on top which is trained on a training part of the target dataset.
 <p align="center"><img src="pics/fine-tuning-plot.jpg" width="450" /></p>
 
 ### Upsampling
