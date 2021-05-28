@@ -29,7 +29,7 @@ Main plots can be found in the [results](#results) section. Full experiments des
     ```├── few_shot_learning.ipynb``` — k-shot learning procedure\
     ```├── prompts_validation.ipynb``` — finding the best prompt for given dataset\
     ```└── train_CLIP.ipynb``` — training CLIP in different settings
-- ```scr/``` — training related auxilary source code
+- ```src/``` — training related auxilary source code
 - ```pics/``` — pictures for the [results](#results) part
 - ```supplementary/``` — contains report and presentation in ```.pdf``` format
 
