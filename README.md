@@ -21,14 +21,13 @@ We did it on the following training setups: linear probing and contrastive fine-
 Main plots can be found in the [results](#results) section. Full experiments descriptions can be found in the ```supplementary/report.pdf```
 
 ## Repository structure
-
-- ```data_prepare/``` — Dataset upsampling procedures TODO
 - ```notebooks/``` — contains experiments in form of jupyter notebooks \
     ```├── few_shot_learning.ipynb``` — k-shot learning procedure\
     ```├── image_upsampling.ipynb``` — two ways to upsample images with subsequent saving\
     ```├── prompts_validation.ipynb``` — finding the best prompt for given dataset\
     ```├── train_ImageNet_models.ipynb``` — fine-tuning of models pretrained on ImageNet in different settings\
     ```└── train_CLIP.ipynb``` — fine-tuning CLIP models in different settings
+- ```data_prepare/``` — Dataset upsampling auxilary source code
 - ```src/``` — training related auxilary source code
 - ```pics/``` — pictures for the [results](#results) part
 - ```supplementary/``` — contains report and presentation in ```.pdf``` format
