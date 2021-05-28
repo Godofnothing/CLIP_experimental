@@ -37,25 +37,25 @@ Main plots can be found in the [results](#results) section. Full experiments des
 ## Results
 ### Zero-shot predictions
 We tested zero-shot prediction performance of CLIP on a number of domain-specific datasets. These are [Birds](https://www.kaggle.com/gpiosenka/100-bird-species), [Simpsons](https://www.kaggle.com/alexattia/the-simpsons-characters-dataset), [Sports](https://www.kaggle.com/gpiosenka/sports-classification), [Fruits](https://www.kaggle.com/moltean/fruits). Here are some examples of the predictions:
-#### **Simpsons** [[link](https://www.kaggle.com/alexattia/the-simpsons-characters-dataset)]
+#### **Simpsons** [[link](https://www.kaggle.com/alexattia/the-simpsons-characters-dataset)] ~ 0.51 accuracy
 ---
 <p align="center"><img src="pics/zero-shot-simpsons.png" width="700" /></p>
 
-#### **Birds** [[link](https://www.kaggle.com/gpiosenka/100-bird-species)]
+#### **Birds** [[link](https://www.kaggle.com/gpiosenka/100-bird-species)] ~ 0.52 accuracy
 ---
 <p align="center"><img src="pics/zero-shot-birds.png" width="700" /></p>
 
-#### **Fruits** [[link](https://www.kaggle.com/moltean/fruits)]
+#### **Fruits** [[link](https://www.kaggle.com/moltean/fruits)] ~ 0.24 accuracy
 ---
 <p align="center"><img src="pics/zero-shot-visualization.jpg" width="700" /></p>
 
-#### **Sports** [[link](https://www.kaggle.com/gpiosenka/sports-classification)]
+#### **Sports** [[link](https://www.kaggle.com/gpiosenka/sports-classification)] ~ 0.79 accuracy
 ---
 <p align="center"><img src="pics/zero-shot-sports.png" width="700" /></p>
 
 
 ### K-shot training
-Pretained CLIP model with **ResNet-101** backbone + new fully-connected layer which is trained only on *k* examples of each class.
+Pretained CLIP model with ResNet-101 backbone + new fully-connected layer which is trained only on *k* examples of each class.
 <p align="center"><img src="pics/few-shot.png" width="450" /></p>
 
 ### Fine-tuning with linear probing
@@ -66,7 +66,7 @@ Fune-tuning of visual parts of CLIP models with linear classifier on top with fr
 
 ### Fine-tuning CLIP with different upsamplings
 Fine-tuning CLIP visual models using different methods and upsamplings.
-1. Maximizing likelihood (ML), i.e. training the whole model + a linear layer on top
+1. Maximizing likelihood (ML), i.e. training CLIP visual model + a linear layer on top
 2. Cosine Similarity maximizing (CS). Fine-tune CLIP visual model to maximize cosine similarity between images of the same class.
 
 Each method was tested with ResNet-101/ViT backbones and bicubic/GAN upsampling
