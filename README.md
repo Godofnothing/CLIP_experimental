@@ -25,6 +25,7 @@ Main plots can be found in the [results](#results) section. Full experiments des
 - ```data_prepare/``` — Dataset upsampling procedures TODO
 - ```notebooks/``` — contains experiments in form of jupyter notebooks \
     ```├── few_shot_learning.ipynb``` — k-shot learning procedure\
+    ```├── image_upsampling.ipynb``` — two ways to upsample images with subsequent saving\
     ```├── prompts_validation.ipynb``` — finding the best prompt for given dataset\
     ```├── train_ImageNet_models.ipynb``` — fine-tuning of models pretrained on ImageNet in defferent settings\
     ```└── train_CLIP.ipynb``` — fine-tuning CLIP models in different settings
