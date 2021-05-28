@@ -106,7 +106,7 @@ def image_upsampling(
         gan_path=None,
         phase='Training'
 ):
-    assert phase in ['Traning', 'Test'], 'Incorrect phase'
+    assert phase in ['Training', 'Test'], 'Incorrect phase'
 
     folders = glob.glob(os.path.join(folder_path, f'{phase}/*'))
     phase_images(batch_size, folders, path_to_save, mode, gan_path)
