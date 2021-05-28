@@ -44,7 +44,7 @@ Pretained CLIP model with new fully-connected layer which is trained only on *k*
 
 ### Linear probing
 Pretained model with new fully-connected layer on top which is trained on a training part of the target dataset.
-<img src="pics/CLIP_lin_train.png" width="425"/> <img src="pics/CLIP_lin_val.png" width="425"/> 
+<p align="center"><img src="pics/CLIP_lin_train.png" width="400"/> <img src="pics/CLIP_lin_val.png" width="400"/></p> 
 
 
 ### Fine-tuning
