@@ -58,16 +58,18 @@ We tested zero-shot prediction performance of CLIP on a number of domain-specifi
 Pretained CLIP model with **ResNet-101** backbone + new fully-connected layer which is trained only on *k* examples of each class.
 <p align="center"><img src="pics/few-shot.png" width="450" /></p>
 
-### Fine-tuning
+### Fine-tuning with linear probing
 Fune-tuning of visual parts of CLIP models with linear classifier on top with frozen/trainable backbones
 
 <p align="center"><img src="pics/CLIP_lin_train.png" width="400"/> <img src="pics/CLIP_lin_val.png" width="400"/></p> 
 
 
-### Linear probing
-Pretained model with new fully-connected layer on top which is trained on a training part of the target dataset.
-<p align="center"><img src="pics/fine-tuning-plot.jpg" width="450" /></p>
+### Fine-tuning CLIP with different upsamplings
+Fine-tuning CLIP visual models using different methods and upsamplings.
+1. Maximizing likelihood (ML), i.e. training the whole model + a linear layer on top
+2. Cosine Similarity maximizing (CS). Fine-tune CLIP visual model to maximize cosine similarity between images of the same class.
 
-### Upsampling
-<p align="center"><img src="pics/interpolations.jpg" width="450" /></p>
+Each method was tested with ResNet-101/ViT backbones and bicubic/GAN upsampling
+<p align="center"><img src="pics/CLIP_RN101_train.png" width="400"/> <img src="pics/CLIP_RN101_val.png" width="400"/></p> 
+<p align="center"><img src="pics/CLIP_ViT_train.png" width="400"/> <img src="pics/CLIP_ViT_val.png" width="400"/></p> 
 
